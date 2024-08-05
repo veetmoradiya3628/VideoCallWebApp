@@ -1,9 +1,12 @@
 const fs = require('fs')
 const https = require('https');
 const express = require('express')
+const cors = require('cors')
 const socketio = require('socket.io')
 
 const app = express();
+app.use(cors())
+app.use(express.json())
 app.use(express.static(__dirname + '/public'))
 
 const key = fs.readFileSync('./certs/cert.key');
