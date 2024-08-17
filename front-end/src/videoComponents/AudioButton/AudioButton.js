@@ -4,19 +4,21 @@ import getDevices from "../../webRTCutilities/getDevices";
 import addStream from "../../redux-elements/actions/addStream";
 import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
 import ActionButtonCaretDropDown from "../ActionButtonCaretDropDown";
+import startAudioStream from "./startAudioStream";
 
 const AudioButton = ({ smallFeedlEl }) => {
     const dispatch = useDispatch();
 
     const callStatus = useSelector(state => state.callStatus);
+    const streams = useSelector(state => state.streams);
 
     const [caretOpen, setCaretOpen] = useState(false);
     const [audioDeviceList, setAudioDeviceList] = useState([]);
 
     let micText;
-    if (callStatus.current === "idle") {
+    if (callStatus.audio === "off") {
         micText = "Join Audio"
-    } else if (callStatus.audio) {
+    } else if (callStatus.audio === "enabled") {
         micText = "Mute"
     } else {
         micText = "Unmute"
@@ -34,6 +36,26 @@ const AudioButton = ({ smallFeedlEl }) => {
         }
         getDevicesAsync()
     }, [caretOpen])
+
+    const startStopAudio = () => {
+        if (callStatus.audio === "enabled") {
+            dispatch(updateCallStatus('audio', "disabled"));
+            // set the stream to disabled
+            const tracks = streams.localStream.stream.getAudioTracks();
+            tracks.forEach((t) => {
+                t.enabled = false
+            })
+        } else if (callStatus.audio === "disabled") {
+            dispatch(updateCallStatus('audio', "enabled"));
+            const tracks = streams.localStream.stream.getAudioTracks();
+            tracks.forEach((t) => {
+                t.enabled = true
+            })
+        } else {
+            changeAudioDevice({ target: { value: "inputdefault" } })
+            startAudioStream(streams);
+        }
+    }
 
     const changeAudioDevice = async (e) => {
         // user changed the desired output audio device / input audio device
@@ -65,7 +87,7 @@ const AudioButton = ({ smallFeedlEl }) => {
             // 4. update the smallFeedEl
             dispatch(addStream('localStream', stream))
 
-            // 6. add tracks
+            // 6. add tracks - actually replaceTracks
             const tracks = stream.getAudioTracks();
             // come back to this later 
         }
@@ -74,7 +96,7 @@ const AudioButton = ({ smallFeedlEl }) => {
     return (
         <div className="button-wrapper d-inline-block">
             <i className="fa fa-caret-up choose-audio" onClick={() => setCaretOpen(!caretOpen)}></i>
-            <div className="button mic">
+            <div className="button mic" onClick={startStopAudio}>
                 <i className="fa fa-microphone"></i>
                 <div className="btn-text">{micText}</div>
             </div>

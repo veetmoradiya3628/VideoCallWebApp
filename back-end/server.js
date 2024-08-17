@@ -17,6 +17,5 @@ const io = socketio(expressServer, {
     cors: ['https://localhost:3000']
 })
 
-
 expressServer.listen(9000);
 module.exports = { io, expressServer, app };
