@@ -4,6 +4,7 @@ import startLocalVideoStream from "./startLocalVideoStream";
 import updateCallStatus from "../../redux-elements/actions/updateCallStatus";
 import getDevices from "../../webRTCutilities/getDevices";
 import addStream from "../../redux-elements/actions/addStream";
+import ActionButtonCaretDropDown from "../ActionButtonCaretDropDown";
 
 const VideoButton = ({ smallFeedlEl }) => {
     const dispatch = useDispatch();
@@ -25,19 +26,9 @@ const VideoButton = ({ smallFeedlEl }) => {
         getDevicesAsync();
     }, [caretOpen])
 
-    const DropDown = () => {
-        return (
-            <div className="caret-dropdown" style={{ top: "-25px" }}>
-                <select defaultValue={1} onChange={changeVideoDevice}>
-                    {videoDeviceList.map((vd) => <option key={vd.deviceId} value={vd.deviceId}>{vd.label}</option>)}
-                </select>
-            </div>
-        )
-    }
-
     const changeVideoDevice = async (e) => {
         // user changed the video device
-        
+
         // 1. we need to get that device
         const deviceId = e.target.value;
         // console.log(deviceId);
@@ -51,13 +42,14 @@ const VideoButton = ({ smallFeedlEl }) => {
 
         // 3. update redux with that video deviceId
         dispatch(updateCallStatus('videoDevice', deviceId));
-
+        dispatch(updateCallStatus('video', 'enabled'))
+        
         // 4. update the smallFeedEl
         smallFeedlEl.current.srcObject = stream;
 
         // 5. we need to update local stream in streams
         dispatch(addStream('localStream', stream))
-        
+
         // 6. add tracks
         const tracks = stream.getVideoTracks();
         // come back to this later
@@ -102,7 +94,11 @@ const VideoButton = ({ smallFeedlEl }) => {
                 <i className="fa fa-video"></i>
                 <div className="btn-text">{callStatus.video === "enabled" ? "Stop" : "Start"} Video</div>
             </div>
-            {caretOpen ? <DropDown /> : <></>}
+            {caretOpen ? <ActionButtonCaretDropDown 
+                            defaultValue={callStatus.videoDevice} 
+                            changeHandler={changeVideoDevice}
+                            deviceList={videoDeviceList}
+                            type="video" /> : <></>}
         </div>
     )
 }
