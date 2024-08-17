@@ -1,7 +1,7 @@
 const initState = {
     current: "idle",
-    video: false,
-    audio: false,
+    video: "off", // video feed status: "off", "enabled", "disabled", "complete"
+    audio: "off", // 
     audioDevice: 'default',
     videoDevice: 'default',
     shareScreen: false,
