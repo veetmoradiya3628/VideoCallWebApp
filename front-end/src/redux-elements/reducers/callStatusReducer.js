@@ -6,6 +6,7 @@ const initState = {
     videoDevice: 'default',
     shareScreen: false,
     haveMedia: false,
+    haveCreatedOffer: false
 }
 
 export default (state = initState, action) => {

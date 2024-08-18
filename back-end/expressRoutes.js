@@ -15,7 +15,8 @@ app.get('/user-link', (req, res) => {
     const apptData = {
         professionalsFullName: "Robert Bunch, J.D.",
         apptDate: Date.now() + 500000,
-        uuid
+        uuid,
+        clientName: "Jim Jones"
     }
 
     professionalAppointments.push(apptData)

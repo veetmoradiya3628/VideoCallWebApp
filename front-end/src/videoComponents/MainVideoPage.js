@@ -6,13 +6,16 @@ import CallInfo from "./CallInfo";
 import ChatWindow from "./ChatWindow";
 import ActionButtons from "./ActionButtons";
 import addStrem from "../redux-elements/actions/addStream"
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import createPeerConnection from "../webRTCutilities/createPeerConnection";
 import socket from "../webRTCutilities/socketConnection"
 import updateCallStatus from "../redux-elements/actions/updateCallStatus";
 
 const MainVideoPage = () => {
     const dispatch = useDispatch()
+
+    const callStatus = useSelector(state => state.callStatus)
+    const streams = useSelector(state => state.streams)
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [apptInfo, setApptInfo] = useState({})
@@ -38,6 +41,30 @@ const MainVideoPage = () => {
         }
         fetchMedia()
     }, [])
+
+    useEffect(() => {
+        const createOfferAsync = async () => {
+            for (const s in streams) {
+                if (s !== "localStream") {
+                    try {
+                        const pc = streams[s].peerConnection;
+                        const offer = await pc.createOffer();
+                        socket.emit('newOffer', { offer, apptInfo })
+                    } catch (error) {
+                        console.log(error);
+                    }
+                }
+            }
+            dispatch(updateCallStatus('haveCreatedOffer', true));
+        }
+        if (callStatus.audio === "enabled"
+            && callStatus.video === "enabled"
+            && !callStatus.haveCreatedOffer) {
+            // we have audio and video and now we need offer, let's make it
+            createOfferAsync()
+        }
+
+    }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer])
 
     useEffect(() => {
         const token = searchParams.get('token');
