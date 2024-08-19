@@ -42,6 +42,18 @@ io.on('connection', socket => {
                 proId
             })
         }
+        // send the appointment data out to the professional
+        const professionalAppointments = app.get('professionalAppointments')
+        socket.emit('apptData', professionalAppointments.filter(pa => pa.professionalsFullName === fullName))
+
+        // loop through all known offer and sent out to the professional that just joined,
+        // the ones that belongs to him / her
+        for (const key in allKnownOffers) {
+            if (allKnownOffers[key].professionalsFullName === fullName) {
+                // this offer is for this pro
+                io.to(socket.id).emit('newOfferWaiting', allKnownOffers[key])
+            }
+        }
     } else {
         console.log(`This is client`);
     }
@@ -61,12 +73,19 @@ io.on('connection', socket => {
             answerIceCandidates: [],
         }
 
+        const professionalAppointments = app.get('professionalAppointments')
+        const pa = professionalAppointments.find(pa => pa.uuid === apptInfo.uuid)
+        if (pa) {
+            pa.waiting = true
+        }
+
         // we need to emit it to only required professional, not to every one
         const p = connectedProfessionals.find((cp) => cp.fullName === apptInfo.professionalsFullName)
         if (p) {
             // only emit if professional is logged in / active
             const socketId = p.socketId;
             socket.to(socketId).emit('newOfferWaiting', allKnownOffers[apptInfo.uuid])
+            socket.to(socketId).emit('apptData', professionalAppointments.filter(pa => pa.professionalsFullName === apptInfo.professionalsFullName))
         }
     })
 })
