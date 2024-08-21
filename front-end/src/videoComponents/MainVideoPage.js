@@ -49,6 +49,7 @@ const MainVideoPage = () => {
                     try {
                         const pc = streams[s].peerConnection;
                         const offer = await pc.createOffer();
+                        pc.setLocalDescription(offer);
                         // get the token from the url for socket connection
                         const token = searchParams.get('token');
                         const socket = socketConnection(token);

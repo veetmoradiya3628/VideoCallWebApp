@@ -43,31 +43,39 @@ const ProMainVideoPage = () => {
     }, [])
 
     useEffect(() => {
-        const createOfferAsync = async () => {
+        const setAsyncOffer = async () => {
             for (const s in streams) {
                 if (s !== "localStream") {
-                    try {
-                        const pc = streams[s].peerConnection;
-                        const offer = await pc.createOffer();
-                        // get the token from the url for socket connection
-                        const token = searchParams.get('token');
-                        const socket = socketConnection(token);
-                        socket.emit('newOffer', { offer, apptInfo })
-                    } catch (error) {
-                        console.log(error);
-                    }
+                    const pc = streams[s].peerConnection;
+                    await pc.setRemoteDescription(callStatus.offer);
+                    console.log(pc.signalingState); // should be have remote offer
                 }
             }
-            dispatch(updateCallStatus('haveCreatedOffer', true));
         }
-        if (callStatus.audio === "enabled"
-            && callStatus.video === "enabled"
-            && !callStatus.haveCreatedOffer) {
-            // we have audio and video and now we need offer, let's make it
-            createOfferAsync()
+        if (callStatus.offer && streams.remote1 && streams.remote1.peerConnection) {
+            setAsyncOffer()
         }
+    }, [callStatus.offer, streams.remote1])
 
-    }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer])
+    useEffect(() => {
+        const createAnswerAsync = async () => {
+            // we have audio and video so we can make answer
+            for (const s in streams) {
+                if (s !== "localStream") {
+                    const pc = streams[s].peerConnection;
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    console.log(pc.signalingState); // should be have local answer
+
+                    // emit the answer to server
+                }
+            }
+        }
+        // we only create any answer if audio & video are enabled and have created answer is enabled
+        if (callStatus.audio === "enabled" && callStatus.video === "enabled" && !callStatus.haveCreatedAnswer) {
+            createAnswerAsync()
+        }
+    }, [callStatus.audio, callStatus.video, callStatus.haveCreatedAnswer])
 
     useEffect(() => {
         const token = searchParams.get('token');
@@ -87,9 +95,12 @@ const ProMainVideoPage = () => {
                 {/* Div to hold our own video, remote video & our chat window */}
                 <video ref={largeFeedEl} id="large-feed" autoPlay controls playsInline></video>
                 <video ref={smallFeedEl} id="own-feed" autoPlay controls playsInline></video>
-
-                {apptInfo.professionalsFullName ? <CallInfo apptInfo={apptInfo} /> : <></>}
-
+                {callStatus.audio === "off" || callStatus.video === "off" ? <div className="call-info">
+                    <h1>
+                        {searchParams.get('client')} is in waiting room.<br />
+                        Call will start when video and audio are enabled
+                    </h1>
+                </div> : <></>}
                 <ChatWindow />
             </div>
             <ActionButtons smallFeedlEl={smallFeedEl} />

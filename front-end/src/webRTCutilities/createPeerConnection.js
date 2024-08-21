@@ -9,7 +9,7 @@ const createPeerConnection = () => {
             console.log(e);
         })
 
-        peerConnection.addEventListener('icecandidates', e => {
+        peerConnection.addEventListener('icecandidate', e => {
             console.log("found ice candidate...");
             if(e.candidate){
                 // emit to socket server
