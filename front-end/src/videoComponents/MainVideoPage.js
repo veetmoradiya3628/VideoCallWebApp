@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import createPeerConnection from "../webRTCutilities/createPeerConnection";
 import socketConnection from "../webRTCutilities/socketConnection"
 import updateCallStatus from "../redux-elements/actions/updateCallStatus";
+import clientSocketListeners from "../webRTCutilities/clientSocketListeners";
 
 const MainVideoPage = () => {
     const dispatch = useDispatch()
@@ -54,6 +55,9 @@ const MainVideoPage = () => {
                         const token = searchParams.get('token');
                         const socket = socketConnection(token);
                         socket.emit('newOffer', { offer, apptInfo })
+
+                        // add our event listeners
+                        clientSocketListeners(socket, dispatch)
                     } catch (error) {
                         console.log(error);
                     }
@@ -69,6 +73,23 @@ const MainVideoPage = () => {
         }
 
     }, [callStatus.audio, callStatus.video, callStatus.haveCreatedOffer])
+
+    useEffect(() => {
+        // listen for changes to callStatus.answer
+        const asyncAddAnswer = async () => {
+            for (const s in streams) {
+                if (s !== "localStream") {
+                    const pc = streams[s].peerConnection;
+                    await pc.setRemoteDescription(callStatus.answer);
+                    console.log(pc.signalingState);
+                    console.log('answer added');
+                }
+            }
+        }
+        if (callStatus.answer) {
+            asyncAddAnswer();
+        }
+    }, [callStatus.answer])
 
     useEffect(() => {
         const token = searchParams.get('token');

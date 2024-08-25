@@ -66,8 +66,14 @@ const ProMainVideoPage = () => {
                     const answer = await pc.createAnswer();
                     await pc.setLocalDescription(answer);
                     console.log(pc.signalingState); // should be have local answer
+                    dispatch(updateCallStatus('haveCreatedAnswer', true))
+                    dispatch(updateCallStatus('answer', answer))
 
                     // emit the answer to server
+                    const token = searchParams.get('token');
+                    const socket = socketConnection(token);
+                    const uuid = searchParams.get('uuid')
+                    socket.emit('newAnswer', { answer, uuid })
                 }
             }
         }

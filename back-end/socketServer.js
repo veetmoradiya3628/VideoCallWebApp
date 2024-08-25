@@ -5,6 +5,7 @@ const linkSecret = "aklsdalkdaskdnasa";
 
 // const professionalAppointments = app.get('professionalAppointments')
 const connectedProfessionals = []
+const connectedClients = []
 const allKnownOffers = {
     // uniqueId - key
     // offer
@@ -56,9 +57,38 @@ io.on('connection', socket => {
         }
     } else {
         console.log(`This is client`);
+        const { professionalsFullName, uuid, clientName } = decodedData;
+        const clientExists = connectedClients.find((c) => c.uuid == uuid);
+        if (clientExists) {
+            clientExists.socketId = socket.id;
+        } else {
+            connectedClients.push({
+                clientName,
+                uuid,
+                professionalMeetingWith: professionalsFullName,
+                socketId: socket.id,
+            })
+        }
+        const offerForThisClient = allKnownOffers[uuid]
+        if (offerForThisClient) {
+            io.to(socket.id).emit('answerToClient', offerForThisClient.answer)
+        }
     }
 
     console.log(connectedProfessionals);
+
+    socket.on('newAnswer', ({ answer, uuid }) => {
+        // emit this to the client
+        const socketToSendTo = connectedClients.find((c) => c.uuid == uuid)
+        if (socketToSendTo) {
+            socket.to(socketToSendTo.socketId).emit('answerToClient', answer)
+        }
+        // update the offer
+        const KnownOffer = allKnownOffers[uuid]
+        if (KnownOffer) {
+            KnownOffer.answer = answer;
+        }
+    })
 
     socket.on('newOffer', ({
         offer,
