@@ -138,8 +138,16 @@ io.on('connection', socket => {
                 // this means the client has sent an ice candidates
                 // update the offer
                 offerToUpdate.offererIceCandidates.push(iceC);
+                const socketToSentTo = connectedProfessionals.find(cp => cp.fullName === decodedData.professionalsFullName)
+                if (socketToSentTo) {
+                    socket.to(socketToSentTo.socketId).emit('iceToClient', iceC);
+                }
             } else if (who === "professional") {
                 offerToUpdate.answerIceCandidates.push(iceC);
+                const socketToSentTo = connectedClients.find(cp => cp.uuid === uuid)
+                if (socketToSentTo) {
+                    socket.to(socketToSentTo.socketId).emit('iceToClient', iceC);
+                }
             }
         }
     })

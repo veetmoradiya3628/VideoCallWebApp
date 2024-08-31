@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import createPeerConnection from "../webRTCutilities/createPeerConnection";
 import socketConnection from "../webRTCutilities/socketConnection"
 import updateCallStatus from "../redux-elements/actions/updateCallStatus";
+import proSocketListeners from "../webRTCutilities/proSocketListeners";
 
 const ProMainVideoPage = () => {
     const dispatch = useDispatch()
@@ -23,6 +24,7 @@ const ProMainVideoPage = () => {
 
     const smallFeedEl = useRef(null);
     const largeFeedEl = useRef(null);
+    const streamsRef = useRef(null);
 
     useEffect(() => {
         // fetch user media
@@ -65,6 +67,7 @@ const ProMainVideoPage = () => {
         if (streams.remote1 && !haveGottenIce) {
             setHaveGottonIce(true);
             getIceAsync()
+            streamsRef.current = streams;
         }
     }, [streams, haveGottenIce])
 
@@ -120,6 +123,23 @@ const ProMainVideoPage = () => {
         }
         fetchDecoedToken()
     }, [])
+
+    useEffect(() => {
+        const token = searchParams.get('token');
+        const socket = socketConnection(token);
+        proSocketListeners.proVideoSocketListeners(socket, addIceCandidateToPc);
+    }, [])
+
+    const addIceCandidateToPc = (iceC) => {
+        // add the icecandidates from remote to peer connection
+        for(const s in streamsRef.current){
+            if(s !== 'localStream'){
+                const pc = streamsRef.current[s].peerConnection;
+                pc.addIceCandidate(iceC);
+                console.log("Added an ice candidate to existing page presence");
+            }
+        }
+    }
 
     const addIce = (iceC) => {
         // emit a new ice candidate to a signaling server

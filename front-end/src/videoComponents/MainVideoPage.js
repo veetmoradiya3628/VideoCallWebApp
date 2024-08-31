@@ -23,6 +23,7 @@ const MainVideoPage = () => {
     const smallFeedEl = useRef(null);
     const largeFeedEl = useRef(null);
     const uuidRef = useRef(null);
+    const streamsRef = useRef(null);
 
     useEffect(() => {
         // fetch user media
@@ -43,6 +44,12 @@ const MainVideoPage = () => {
         }
         fetchMedia()
     }, [])
+
+    useEffect(() => {
+        if(streams.remote1){
+            streamsRef.current = streams;
+        }
+    }, [streams])
 
     useEffect(() => {
         const createOfferAsync = async () => {
@@ -104,6 +111,23 @@ const MainVideoPage = () => {
         }
         fetchDecoedToken()
     }, [])
+
+    useEffect(() => {
+        const token = searchParams.get('token');
+        const socket = socketConnection(token);
+        clientSocketListeners(socket, addIceCandidateToPc);
+    }, [])
+
+    const addIceCandidateToPc = (iceC) => {
+        // add the icecandidates from remote to peer connection
+        for (const s in streamsRef.current) {
+            if (s !== 'localStream') {
+                const pc = streamsRef.current[s].peerConnection;
+                pc.addIceCandidate(iceC);
+                console.log("Added an ice candidate to existing page presence");
+            }
+        }
+    }
 
     const addIce = (iceC) => {
         // emit a new ice candidate to a signaling server
