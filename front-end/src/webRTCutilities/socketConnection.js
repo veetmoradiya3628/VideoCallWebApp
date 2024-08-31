@@ -1,18 +1,20 @@
 import { io } from 'socket.io-client';
 
-// don't want to create socket on every reload / session
 let socket;
-const socketConnection = (jwt) => {
-    if (socket && socket.connected) {
+const socketConnection = (jwt)=>{
+    //check to see if the socket is already connected
+    if(socket && socket.connected){
+        //if so, then just return it so whoever needs it, can use it
         return socket;
-    } else {
-        socket = io.connect('https://localhost:9000', {
+    }else{
+        //its not connected... connect!
+        socket = io.connect('https://localhost:9000',{
             auth: {
                 jwt
             }
-        })
+        });
         return socket;
     }
 }
 
-export default socketConnection
+export default socketConnection;

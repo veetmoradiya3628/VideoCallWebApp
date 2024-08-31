@@ -1,22 +1,23 @@
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 
-const CallInfo = ({ apptInfo }) => {
+const CallInfo = ({apptInfo})=>{
 
-    const [momentText, setMomentText] = useState(moment(apptInfo.apptDate).fromNow())
-
+    const [ momentText, setMomentText ] = useState(moment(apptInfo.apptDate).fromNow())
+    
     useEffect(() => {
-        const timeInterval = setInterval(() => {
+        const timeInterval = setInterval(()=>{
             setMomentText(moment(apptInfo.apptDate).fromNow())
             // console.log("Updating time")
-        }, 5000)
+        },5000)
+        //clean up function
         return () => {
             // console.log("Clearing")
-            clearInterval(timeInterval);
+          clearInterval(timeInterval);
         };
-    }, []);
+      }, []);
 
-    return (
+    return(
         <div className="call-info">
             <h1>
                 {apptInfo.professionalsFullName} has been notified.<br />

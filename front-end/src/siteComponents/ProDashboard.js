@@ -1,34 +1,34 @@
 import { useEffect, useState } from 'react';
 import './ProDashboard.css'
-import axios from 'axios';
-import { useDispatch } from 'react-redux';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import socketConnection from "../webRTCutilities/socketConnection"
+import axios from 'axios';
+import socketConnection from '../webRTCutilities/socketConnection';
 import proSocketListeners from '../webRTCutilities/proSocketListeners';
 import moment from 'moment';
+import { useDispatch } from 'react-redux';
 
-const ProDashboard = () => {
-    const dispatch = useDispatch();
+const ProDashboard = ()=>{
+
+    const [ searchParams, setSearchParams ] = useSearchParams();
     const navigate = useNavigate();
+    const [ apptInfo, setApptInfo ] = useState([]);
+    const dispatch = useDispatch();
 
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [apptInfo, setApptInfo] = useState([])
-
-    useEffect(() => {
+    useEffect(()=>{
+        //grab the token var out of the query string
         const token = searchParams.get('token');
         const socket = socketConnection(token);
-        proSocketListeners.proDashboardSocketListeners(socket, setApptInfo, dispatch);
-    }, [])
+        proSocketListeners.proDashabordSocketListeners(socket,setApptInfo,dispatch);
+    },[])
 
-    const joinCall = (appt) => {
+    const joinCall = (appt)=>{
         console.log(appt);
         const token = searchParams.get('token');
-        // navigate to /join-video-pro?token=?
+        //navigate to /join-video-pro
         navigate(`/join-video-pro?token=${token}&uuid=${appt.uuid}&client=${appt.clientName}`)
     }
 
-    console.log("Test")
-    return (
+    return(
         <div className="container">
             <div className="row">
                 <div className="col-12 main-border purple-bg"></div>
@@ -50,7 +50,7 @@ const ProDashboard = () => {
                     </div>
                     <div className="menu-item">
                         <li><i className="fa fa-chart-pie"></i>Reports</li>
-                    </div>
+                        </div>
                 </div>
                 <div className="col-8">
                     <div className="row">
@@ -65,17 +65,18 @@ const ProDashboard = () => {
                             <div className="col-6">
                                 <div className="dash-box clients-board blue-bg">
                                     <h4>Coming Appointments</h4>
-                                    {apptInfo.map((a, index) => <div key={a.uuid + '_' + index}>
-                                        <li className="client">{a.clientName} - {moment(a.apptDate).calendar()}
-                                            {
-                                                a.waiting ? <>
+                                    {apptInfo.map(a=><div key={a.uuid}>
+                                            <li className="client">{a.clientName} - {moment(a.apptDate).calendar()} 
+                                            {a.waiting ? <>
                                                     <div className="waiting-text d-inline-block">Waiting</div>
-                                                    <button className="btn btn-danger join-btn" onClick={() => joinCall(a)}>Join</button>
-                                                </> : <></>
-                                            }
-                                        </li>
-                                    </div>)}
+                                                    <button className="btn btn-danger join-btn" onClick={()=>joinCall(a)}>Join</button>
+                                                </> : <></>}
+                                            </li>
+                                        </div>
+                                    )}
+                                    
                                 </div>
+                                
                             </div>
                         </div>
                         <div className="row num-2">
@@ -95,20 +96,20 @@ const ProDashboard = () => {
                                 </div>
                             </div>
 
-
+                            
 
                         </div>
                     </div>
                     <div className="row num-2">
                         <div className="col-4 calendar">
                             <img src="https://s3.amazonaws.com/robertbunch.dev.publicresources/calendar.png" />
-                        </div>
+                        </div>    
                     </div>
                 </div>
 
 
 
-            </div>
+            </div>            
         </div>
     )
 }

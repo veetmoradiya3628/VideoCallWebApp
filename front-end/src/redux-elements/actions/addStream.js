@@ -1,11 +1,11 @@
-export default (who, stream, peerConnection) => {
-    return {
+
+export default (who,stream,peerConnection)=>{
+    return{
         type: "ADD_STREAM",
         payload: {
-            who,
+            who, 
             stream,
             peerConnection // for local, undefined
         }
     }
 }
-

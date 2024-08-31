@@ -5,7 +5,7 @@ import MainVideoPage from './videoComponents/MainVideoPage';
 import ProDashboard from './siteComponents/ProDashboard';
 import ProMainVideoPage from './videoComponents/ProMainVideoPage';
 
-const Home = () => <h1>Hello home page!!</h1>
+const Home = ()=><h1>Hello, Home page</h1>
 
 function App() {
   return (
@@ -13,8 +13,8 @@ function App() {
       <Routes>
         <Route exact path="/" Component={Home} />
         <Route path="/join-video" Component={MainVideoPage} />
-        <Route path="/dashboard" Component={ProDashboard} />
-        <Route path="/join-video-pro" Component={ProMainVideoPage} />
+        <Route exact path="/dashboard" Component={ProDashboard} />
+        <Route exact path="/join-video-pro" Component={ProMainVideoPage} />
       </Routes>
     </BrowserRouter>
   );
