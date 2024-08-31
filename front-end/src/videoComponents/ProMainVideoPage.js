@@ -19,6 +19,8 @@ const ProMainVideoPage = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [apptInfo, setApptInfo] = useState({})
+    const [haveGottenIce, setHaveGottonIce] = useState(false);
+
     const smallFeedEl = useRef(null);
     const largeFeedEl = useRef(null);
 
@@ -41,6 +43,30 @@ const ProMainVideoPage = () => {
         }
         fetchMedia()
     }, [])
+
+    useEffect(() => {
+        const getIceAsync = async () => {
+            const socket = socketConnection(searchParams.get('token'));
+            const uuid = searchParams.get('uuid');
+            const iceCandidates = await socket.emitWithAck('getIce', uuid, "professional");
+            console.log("iceCandidates received");
+            console.log(iceCandidates);
+
+            iceCandidates.forEach((iceC) => {
+                for (const s in streams) {
+                    if (s !== 'localStream') {
+                        const pc = streams[s].peerConnection;
+                        pc.addIceCandidate(iceC);
+                        console.log("========= Added Ice Candidate");
+                    }
+                }
+            })
+        }
+        if (streams.remote1 && !haveGottenIce) {
+            setHaveGottonIce(true);
+            getIceAsync()
+        }
+    }, [streams, haveGottenIce])
 
     useEffect(() => {
         const setAsyncOffer = async () => {
