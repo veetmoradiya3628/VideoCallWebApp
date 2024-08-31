@@ -1,6 +1,6 @@
 import peerConnection from './stunServers'
 
-const createPeerConnection = () => {
+const createPeerConnection = (addIce) => {
     return new Promise(async (resolve, reject) => {
         const peerConnection = await new RTCPeerConnection();
         const remoteStrem = new MediaStream();
@@ -12,7 +12,7 @@ const createPeerConnection = () => {
         peerConnection.addEventListener('icecandidate', e => {
             console.log("found ice candidate...");
             if(e.candidate){
-                // emit to socket server
+                addIce(e.candidate);
             }
         })
         resolve({

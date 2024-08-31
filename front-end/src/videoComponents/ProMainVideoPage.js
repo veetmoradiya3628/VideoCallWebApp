@@ -33,7 +33,7 @@ const ProMainVideoPage = () => {
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 dispatch(updateCallStatus('haveMedia', true))
                 dispatch(addStrem('localStream', stream))
-                const { peerConnection, remoteStream } = await createPeerConnection()
+                const { peerConnection, remoteStream } = await createPeerConnection(addIce)
                 dispatch(addStrem('remote1', remoteStream, peerConnection))
             } catch (err) {
                 console.log(err);
@@ -94,6 +94,16 @@ const ProMainVideoPage = () => {
         }
         fetchDecoedToken()
     }, [])
+
+    const addIce = (iceC) => {
+        // emit a new ice candidate to a signaling server
+        const socket = socketConnection(searchParams.get('token'));
+        socket.emit('iceToServer', {
+            iceC,
+            who: 'professional',
+            uuid: searchParams.get('uuid')
+        })
+    }
 
     return (
         <div className="main-video-page">

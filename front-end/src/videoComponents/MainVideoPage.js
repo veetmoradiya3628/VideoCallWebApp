@@ -22,6 +22,7 @@ const MainVideoPage = () => {
     const [apptInfo, setApptInfo] = useState({})
     const smallFeedEl = useRef(null);
     const largeFeedEl = useRef(null);
+    const uuidRef = useRef(null);
 
     useEffect(() => {
         // fetch user media
@@ -34,7 +35,7 @@ const MainVideoPage = () => {
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 dispatch(updateCallStatus('haveMedia', true))
                 dispatch(addStrem('localStream', stream))
-                const { peerConnection, remoteStream } = await createPeerConnection()
+                const { peerConnection, remoteStream } = await createPeerConnection(addIce)
                 dispatch(addStrem('remote1', remoteStream, peerConnection))
             } catch (err) {
                 console.log(err);
@@ -99,9 +100,20 @@ const MainVideoPage = () => {
             const resp = await axios.post('https://localhost:9000/validate-link', { token })
             console.log(resp.data);
             setApptInfo(resp.data);
+            uuidRef.current = resp.data.uuid;
         }
         fetchDecoedToken()
     }, [])
+
+    const addIce = (iceC) => {
+        // emit a new ice candidate to a signaling server
+        const socket = socketConnection(searchParams.get('token'));
+        socket.emit('iceToServer', {
+            iceC,
+            who: 'client',
+            uuid: uuidRef.current // we use useRef to keep value updated
+        })
+    }
 
     return (
         <div className="main-video-page">
